@@ -1,42 +1,49 @@
 import heapq
 
 def prim_mst(graph):
-    # Choose starting vertex
-    start = list(graph.keys())[0]
-    
+    # Start at 'A'
+    start_node = 'A'
     visited = set()
-    min_heap = [(0, start)]   # (weight, vertex)
+    
+    # min_heap stores: (weight, current_node, from_node)
+    min_heap = [(0, start_node, None)]
+    
     total_cost = 0
-    mst = []
+    mst_edges = []
 
     while min_heap:
-        weight, vertex = heapq.heappop(min_heap)
+        weight, u, prev = heapq.heappop(min_heap)
 
-        if vertex in visited:
+        # CRITICAL: If we've already visited this node, 
+        # this edge is a "loop" or redundant. Skip it.
+        if u in visited:
             continue
 
-        visited.add(vertex)
+        # Add to MST
+        visited.add(u)
         total_cost += weight
+        if prev is not None:
+            mst_edges.append((prev, u, weight))
 
-        for neighbor, edge_weight in graph[vertex]:
-            if neighbor not in visited:
-                heapq.heappush(min_heap, (edge_weight, neighbor))
-                mst.append((vertex, neighbor, edge_weight))
+        # Check neighbors
+        for v, edge_weight in graph[u]:
+            if v not in visited:
+                heapq.heappush(min_heap, (edge_weight, v, u))
 
-    return total_cost, mst
+    return total_cost, mst_edges
 
-
-# Example Graph (Adjacency List)
-graph = {
-    'A': [('B', 2), ('C', 3)],
-    'B': [('A', 2), ('C', 1), ('D', 4)],
-    'C': [('A', 3), ('B', 1), ('D', 5)],
-    'D': [('B', 4), ('C', 5)]
+# 5-Vertex Graph (Adjacency List)
+graph_5 = {
+    'A': [('B', 2), ('D', 6)],
+    'B': [('A', 2), ('C', 3), ('D', 8), ('E', 5)],
+    'C': [('B', 3), ('E', 7)],
+    'D': [('A', 6), ('B', 8), ('E', 9)],
+    'E': [('B', 5), ('C', 7), ('D', 9)]
 }
 
-cost, edges = prim_mst(graph)
+cost, mst = prim_mst(graph_5)
 
-print("Minimum Spanning Tree Cost:", cost)
-print("Edges in MST:")
-for edge in edges:
-    print(edge)
+print(f"Total MST Cost: {cost}")
+print("Final MST Edges:")
+for edge in mst:
+    print(f"{edge[0]} - {edge[1]} (Weight: {edge[2]})")
